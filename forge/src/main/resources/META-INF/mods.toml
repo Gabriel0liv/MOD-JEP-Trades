@@ -1,0 +1,33 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+issueTrackerURL="https://github.com/Mrbysco/JustEnoughProfessions/issues"
+license="MIT"
+
+[[mods]]
+modId="justenoughprofessions"
+version="${file.jarVersion}"
+displayName="Just Enough Professions (JEP)"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/just-enough-professions-jep"
+authors="Mrbysco, ShyNieke"
+description='''
+Adds info about professions to JEI
+'''
+
+[[dependencies.justenoughprofessions]]
+modId="jei"
+mandatory=true
+versionRange="[15.0.0.12,)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.justenoughprofessions]]
+modId="forge"
+mandatory=true
+versionRange="[47.0.1,)"
+ordering="NONE"
+side="BOTH"
+[[dependencies.justenoughprofessions]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.21)"
+ordering="NONE"
+side="BOTH"

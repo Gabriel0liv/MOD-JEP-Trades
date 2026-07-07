@@ -15,11 +15,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public final class VillagerTradeCollector {
+    private static final int SAMPLE_ATTEMPTS = 512;
+    private static final int MAX_VARIANTS_PER_TRADE = 128;
     private static final Map<ResourceLocation, List<VillagerTradeEntry>> TRADES_BY_PROFESSION = new HashMap<>();
 
     private VillagerTradeCollector() {
@@ -42,18 +45,12 @@ public final class VillagerTradeCollector {
             }
 
             for (VillagerTrades.ItemListing listing : listings) {
-                MerchantOffer offer = createOffer(profession, level, listing);
-                if (offer == null || offer.getResult().isEmpty()) {
+                List<MerchantOffer> offers = createOffers(profession, level, listing);
+                if (offers.isEmpty()) {
                     continue;
                 }
 
-                collectedTrades.add(new VillagerTradeEntry(
-                        profession,
-                        level,
-                        offer.getBaseCostA(),
-                        offer.getCostB(),
-                        offer.getResult()
-                ));
+                collectedTrades.add(createEntryFromOffers(profession, level, offers));
             }
         }
 
@@ -101,15 +98,63 @@ public final class VillagerTradeCollector {
                 .anyMatch(entry -> entry.level() == level);
     }
 
-    private static MerchantOffer createOffer(VillagerProfession profession, int level, VillagerTrades.ItemListing listing) {
-        try {
-            Entity trader = null;
-            return listing.getOffer(trader, RandomSource.create(0L));
-        } catch (Throwable throwable) {
-            Constants.LOGGER.warn("Unable to resolve villager trade for profession {} level {}",
-                    ForgeRegistries.VILLAGER_PROFESSIONS.getKey(profession), level, throwable);
-            return null;
+    private static List<MerchantOffer> createOffers(VillagerProfession profession, int level, VillagerTrades.ItemListing listing) {
+        Map<String, MerchantOffer> unique = new LinkedHashMap<>();
+
+        for (int seed = 0; seed < SAMPLE_ATTEMPTS; seed++) {
+            try {
+                Entity trader = null;
+                MerchantOffer offer = listing.getOffer(trader, RandomSource.create(seed));
+                if (offer == null || offer.getResult().isEmpty()) {
+                    continue;
+                }
+
+                unique.putIfAbsent(offerKey(offer), offer);
+                if (unique.size() >= MAX_VARIANTS_PER_TRADE) {
+                    break;
+                }
+            } catch (Throwable throwable) {
+                if (seed == 0) {
+                    Constants.LOGGER.warn("Unable to resolve villager trade for profession {} level {}",
+                            ForgeRegistries.VILLAGER_PROFESSIONS.getKey(profession), level, throwable);
+                }
+                break;
+            }
         }
+
+        return List.copyOf(unique.values());
+    }
+
+    private static VillagerTradeEntry createEntryFromOffers(VillagerProfession profession, int level, List<MerchantOffer> offers) {
+        List<ItemStack> inputAOptions = new ArrayList<>(offers.size());
+        List<ItemStack> inputBOptions = new ArrayList<>(offers.size());
+        List<ItemStack> outputOptions = new ArrayList<>(offers.size());
+
+        for (MerchantOffer offer : offers) {
+            inputAOptions.add(offer.getBaseCostA());
+            if (!offer.getCostB().isEmpty()) {
+                inputBOptions.add(offer.getCostB());
+            }
+            outputOptions.add(offer.getResult());
+        }
+
+        return new VillagerTradeEntry(profession, level, inputAOptions, inputBOptions, outputOptions);
+    }
+
+    private static String offerKey(MerchantOffer offer) {
+        return stackKey(offer.getBaseCostA()) + "->" +
+                stackKey(offer.getCostB()) + "->" +
+                stackKey(offer.getResult());
+    }
+
+    private static String stackKey(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return "empty";
+        }
+
+        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        String tag = stack.hasTag() && stack.getTag() != null ? stack.getTag().toString() : "";
+        return (itemId != null ? itemId.toString() : "unknown") + "|" + tag;
     }
 
     private static String safeToString(ResourceLocation location) {

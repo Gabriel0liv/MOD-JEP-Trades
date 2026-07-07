@@ -63,15 +63,15 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, VillagerTradeWrapper recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, INPUT_A_X + 1, SLOT_Y + 1)
-                .addItemStack(recipe.getInputA());
+                .addItemStacks(recipe.getInputAOptions());
 
-        if (!recipe.getInputB().isEmpty()) {
+        if (!recipe.getInputBOptions().isEmpty()) {
             builder.addSlot(RecipeIngredientRole.INPUT, INPUT_B_X + 1, SLOT_Y + 1)
-                    .addItemStack(recipe.getInputB());
+                    .addItemStacks(recipe.getInputBOptions());
         }
 
         builder.addSlot(RecipeIngredientRole.OUTPUT, OUTPUT_X + 1, SLOT_Y + 1)
-                .addItemStack(recipe.getOutput());
+                .addItemStacks(recipe.getOutputOptions());
 
         ItemStack professionToken = recipe.getProfessionToken();
         if (!professionToken.isEmpty()) {

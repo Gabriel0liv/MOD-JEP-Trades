@@ -1,4 +1,4 @@
-# JustEnoughVillagerTrades
+# Just Enough Trades
 
 Forge-only JEI addon for Minecraft 1.20.1.
 
@@ -6,11 +6,11 @@ Forge-only JEI addon for Minecraft 1.20.1.
 
 - Minecraft 1.20.1
 - Forge 47.1.3
-- JEI 15.2.0.23 or compatible 1.20.1 release
+- JEI 15.20.0.133 or compatible 1.20.1 release
 
 ## What it does
 
-JustEnoughVillagerTrades adds JEI categories that show villager trades by profession level:
+Just Enough Trades adds JEI categories that show villager trades by profession level:
 
 - Villager Trades: Novice
 - Villager Trades: Apprentice

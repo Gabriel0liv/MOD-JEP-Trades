@@ -90,6 +90,8 @@ public class JustEnoughVillagerTradesJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
+        VillagerTradeCollector.ensureClientTradesLoaded();
+
         for (int level = 1; level <= 5; level++) {
             registration.addRecipes(VillagerTradeRecipeTypes.byLevel(level), VillagerTradeCollector.getTradeWrappers(level));
         }

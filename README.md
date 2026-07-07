@@ -31,6 +31,14 @@ This mod is client-side. It shows villager trades known to the local client, inc
 
 It cannot detect trades that are added only on a remote server by server-side mods, plugins, datapacks, or scripts not present on the client.
 
+## Multiplayer behavior
+
+This mod is client-side and builds its JEI trade list from trades known to the local client.
+
+It works in multiplayer for vanilla trades and for trades from Forge mods installed on the client.
+
+It cannot detect trades that exist only on the remote server, such as trades added by server-only mods, plugins, datapacks, or scripts not present on the client.
+
 ## Testing in dev
 
 Run:

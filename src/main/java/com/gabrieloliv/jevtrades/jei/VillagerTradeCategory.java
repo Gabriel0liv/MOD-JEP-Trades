@@ -1,6 +1,8 @@
 package com.gabrieloliv.jevtrades.jei;
 
 import com.gabrieloliv.jevtrades.Constants;
+import com.gabrieloliv.jevtrades.jei.profession.ProfessionIngredient;
+import com.gabrieloliv.jevtrades.jei.profession.ProfessionIngredientType;
 import com.gabrieloliv.jevtrades.trade.VillagerTradeWrapper;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -35,14 +37,16 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
     private static final int TEXT_MAX_WIDTH = 110;
 
     private final Map<VillagerTradeWrapper, ResourceLocation> focusedProfessions = new WeakHashMap<>();
+    private final int level;
     private final RecipeType<VillagerTradeWrapper> recipeType;
     private final Component title;
     private final IDrawable background;
     private final IDrawable icon;
     private final IDrawableStatic slotDrawable;
 
-    public VillagerTradeCategory(IGuiHelper guiHelper, RecipeType<VillagerTradeWrapper> recipeType, String titleKey) {
+    public VillagerTradeCategory(IGuiHelper guiHelper, RecipeType<VillagerTradeWrapper> recipeType, String titleKey, int level) {
         this.recipeType = recipeType;
+        this.level = level;
         this.title = Component.translatable(titleKey);
         this.background = guiHelper.createBlankDrawable(BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
         this.icon = new IDrawable() {
@@ -104,41 +108,63 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
         builder.addSlot(RecipeIngredientRole.OUTPUT, OUTPUT_X + 1, SLOT_Y + 1)
                 .addItemStacks(recipe.getOutputOptions());
 
-        ItemStack professionToken = recipe.getProfessionToken();
-        if (!professionToken.isEmpty()) {
+        ResourceLocation professionId = recipe.getProfessionId();
+        if (professionId != null) {
+            ProfessionIngredient professionIngredient = new ProfessionIngredient(professionId);
             builder.addInvisibleIngredients(RecipeIngredientRole.INPUT)
-                    .addItemStack(professionToken);
+                    .addIngredient(ProfessionIngredientType.TYPE, professionIngredient);
             builder.addInvisibleIngredients(RecipeIngredientRole.OUTPUT)
-                    .addItemStack(professionToken);
+                    .addIngredient(ProfessionIngredientType.TYPE, professionIngredient);
         }
     }
 
     @Override
     public void draw(VillagerTradeWrapper recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        ResourceLocation focusedProfession = focusedProfessions.get(recipe);
+        if (focusedProfession == null) {
+            guiGraphics.fill(0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, 0x11000000);
+            guiGraphics.hLine(0, BACKGROUND_WIDTH - 1, BACKGROUND_HEIGHT - 1, 0x33555555);
+            guiGraphics.vLine(0, 0, BACKGROUND_HEIGHT - 1, 0x33555555);
+            guiGraphics.vLine(BACKGROUND_WIDTH - 1, 0, BACKGROUND_HEIGHT - 1, 0x33555555);
+            guiGraphics.hLine(0, BACKGROUND_WIDTH - 1, 0, 0x33555555);
+        } else {
+            guiGraphics.hLine(0, BACKGROUND_WIDTH - 1, BACKGROUND_HEIGHT - 2, 0x33555555);
+        }
+
         slotDrawable.draw(guiGraphics, INPUT_A_X, SLOT_Y);
         if (!recipe.getInputBOptions().isEmpty()) {
             slotDrawable.draw(guiGraphics, INPUT_B_X, SLOT_Y);
         }
         slotDrawable.draw(guiGraphics, OUTPUT_X, SLOT_Y);
 
-        if (!focusedProfessions.containsKey(recipe)) {
+        if (focusedProfession != null) {
+            drawScaledText(guiGraphics,
+                    ProfessionTokenHelper.toReadableName(focusedProfession) + ": " + levelName(),
+                    4.0F, 4.0F, 0.8F, 0x404040);
+        } else {
             Font font = Minecraft.getInstance().font;
             ResourceLocation professionId = recipe.getProfessionId();
             String professionText = professionId == null ? "unknown" : ProfessionTokenHelper.toReadableName(professionId);
             float scale = Math.min(0.75F, (float) TEXT_MAX_WIDTH / Math.max(1, font.width(professionText)));
-
-            PoseStack poseStack = guiGraphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(4.0F, 4.0F, 0.0F);
-            poseStack.scale(scale, scale, 1.0F);
-            guiGraphics.drawString(font, professionText, 0, 0, 0x404040, false);
-            poseStack.popPose();
+            drawScaledText(guiGraphics, professionText, 4.0F, 4.0F, scale, 0x404040);
         }
 
         guiGraphics.drawString(Minecraft.getInstance().font, ">", 58, 22, 0x606060, false);
     }
 
     private static ResourceLocation getFocusedProfession(IFocusGroup focuses) {
+        ResourceLocation customFocus = focuses.getFocuses(ProfessionIngredientType.TYPE)
+                .map(IFocus::getTypedValue)
+                .map(typed -> typed.getIngredient(ProfessionIngredientType.TYPE).orElse(null))
+                .filter(ingredient -> ingredient != null)
+                .map(ProfessionIngredient::professionId)
+                .filter(id -> id != null)
+                .findFirst()
+                .orElse(null);
+        if (customFocus != null) {
+            return customFocus;
+        }
+
         return focuses.getItemStackFocuses()
                 .map(IFocus::getTypedValue)
                 .map(typed -> typed.getItemStack().orElse(ItemStack.EMPTY))
@@ -146,5 +172,26 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
                 .filter(id -> id != null)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private String levelName() {
+        return Component.translatable("jevtrades.trades." + switch (level) {
+            case 1 -> "novice";
+            case 2 -> "apprentice";
+            case 3 -> "journeyman";
+            case 4 -> "expert";
+            case 5 -> "master";
+            default -> "unknown";
+        } + ".title").getString();
+    }
+
+    private static void drawScaledText(GuiGraphics guiGraphics, String text, float x, float y, float scale, int color) {
+        Font font = Minecraft.getInstance().font;
+        PoseStack poseStack = guiGraphics.pose();
+        poseStack.pushPose();
+        poseStack.translate(x, y, 0.0F);
+        poseStack.scale(scale, scale, 1.0F);
+        guiGraphics.drawString(font, text, 0, 0, color, false);
+        poseStack.popPose();
     }
 }

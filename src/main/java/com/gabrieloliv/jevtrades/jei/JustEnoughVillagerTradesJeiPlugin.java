@@ -1,13 +1,16 @@
 package com.gabrieloliv.jevtrades.jei;
 
 import com.gabrieloliv.jevtrades.Constants;
+import com.gabrieloliv.jevtrades.jei.profession.ProfessionIngredient;
+import com.gabrieloliv.jevtrades.jei.profession.ProfessionIngredientHelper;
+import com.gabrieloliv.jevtrades.jei.profession.ProfessionIngredientRenderer;
+import com.gabrieloliv.jevtrades.jei.profession.ProfessionIngredientType;
 import com.gabrieloliv.jevtrades.trade.VillagerTradeCollector;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
-import mezz.jei.api.registration.IExtraIngredientRegistration;
 import mezz.jei.api.registration.IIngredientAliasRegistration;
+import mezz.jei.api.registration.IModIngredientRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
@@ -15,15 +18,12 @@ import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 
 @JeiPlugin
 public class JustEnoughVillagerTradesJeiPlugin implements IModPlugin {
     private static final ResourceLocation UID = new ResourceLocation(Constants.MOD_ID, "jei_plugin");
-    private static final ResourceLocation NONE_PROFESSION = new ResourceLocation("minecraft", "none");
-    private static final ResourceLocation NITWIT_PROFESSION = new ResourceLocation("minecraft", "nitwit");
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -39,19 +39,25 @@ public class JustEnoughVillagerTradesJeiPlugin implements IModPlugin {
     }
 
     @Override
-    public void registerExtraIngredients(IExtraIngredientRegistration registration) {
-        registration.addExtraItemStacks(getRegisteredProfessionTokens());
+    public void registerIngredients(IModIngredientRegistration registration) {
+        registration.register(
+                ProfessionIngredientType.TYPE,
+                ProfessionIngredientHelper.getRegisteredProfessionIngredients(),
+                new ProfessionIngredientHelper(),
+                new ProfessionIngredientRenderer()
+        );
     }
 
     @Override
     public void registerIngredientAliases(IIngredientAliasRegistration registration) {
-        for (ResourceLocation professionId : getRegisteredProfessionIds()) {
-            ItemStack token = ProfessionTokenHelper.createProfessionToken(professionId);
-            String readable = ProfessionTokenHelper.toReadableName(professionId);
+        for (ProfessionIngredient ingredient : ProfessionIngredientHelper.getRegisteredProfessionIngredients()) {
+            ResourceLocation professionId = ingredient.professionId();
+            String readable = ingredient.readableName();
 
-            registration.addAliases(VanillaTypes.ITEM_STACK, token, List.of(
+            registration.addAliases(ProfessionIngredientType.TYPE, ingredient, List.of(
                     "trades",
                     "villager trades",
+                    "just enough trades",
                     readable,
                     professionId.getPath(),
                     professionId.toString()
@@ -63,11 +69,11 @@ public class JustEnoughVillagerTradesJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         var guiHelper = registration.getJeiHelpers().getGuiHelper();
         registration.addRecipeCategories(
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.NOVICE, "jevtrades.trades.novice.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.APPRENTICE, "jevtrades.trades.apprentice.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.JOURNEYMAN, "jevtrades.trades.journeyman.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.EXPERT, "jevtrades.trades.expert.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.MASTER, "jevtrades.trades.master.title")
+                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.NOVICE, "jevtrades.trades.novice.title", 1),
+                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.APPRENTICE, "jevtrades.trades.apprentice.title", 2),
+                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.JOURNEYMAN, "jevtrades.trades.journeyman.title", 3),
+                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.EXPERT, "jevtrades.trades.expert.title", 4),
+                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.MASTER, "jevtrades.trades.master.title", 5)
         );
     }
 
@@ -87,24 +93,5 @@ public class JustEnoughVillagerTradesJeiPlugin implements IModPlugin {
         for (int level = 1; level <= 5; level++) {
             registration.addRecipes(VillagerTradeRecipeTypes.byLevel(level), VillagerTradeCollector.getTradeWrappers(level));
         }
-    }
-
-    private static List<ResourceLocation> getRegisteredProfessionIds() {
-        return ForgeRegistries.VILLAGER_PROFESSIONS.getKeys().stream()
-                .filter(JustEnoughVillagerTradesJeiPlugin::isTradeProfession)
-                .sorted(ResourceLocation::compareTo)
-                .toList();
-    }
-
-    private static List<ItemStack> getRegisteredProfessionTokens() {
-        return getRegisteredProfessionIds().stream()
-                .map(ProfessionTokenHelper::createProfessionToken)
-                .toList();
-    }
-
-    private static boolean isTradeProfession(ResourceLocation professionId) {
-        return professionId != null
-                && !professionId.equals(NONE_PROFESSION)
-                && !professionId.equals(NITWIT_PROFESSION);
     }
 }

@@ -17,16 +17,22 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class VillagerTradeCollector {
-    private static final Map<Integer, List<VillagerTradeEntry>> TRADES_BY_LEVEL = createTradeMap();
+    private static final Map<ResourceLocation, List<VillagerTradeEntry>> TRADES_BY_PROFESSION = new HashMap<>();
 
     private VillagerTradeCollector() {
     }
 
     public static void collect(VillagerTradesEvent event) {
         VillagerProfession profession = event.getType();
-        removeExistingEntries(profession);
+        ResourceLocation professionId = ForgeRegistries.VILLAGER_PROFESSIONS.getKey(profession);
+        if (professionId == null) {
+            return;
+        }
+
+        List<VillagerTradeEntry> collectedTrades = new ArrayList<>();
 
         Int2ObjectMap<List<VillagerTrades.ItemListing>> trades = event.getTrades();
         for (int level = 1; level <= 5; level++) {
@@ -41,7 +47,7 @@ public final class VillagerTradeCollector {
                     continue;
                 }
 
-                TRADES_BY_LEVEL.get(level).add(new VillagerTradeEntry(
+                collectedTrades.add(new VillagerTradeEntry(
                         profession,
                         level,
                         offer.getBaseCostA(),
@@ -50,31 +56,29 @@ public final class VillagerTradeCollector {
                 ));
             }
         }
+
+        collectedTrades.sort(Comparator
+                .comparingInt(VillagerTradeEntry::level)
+                .thenComparing(entry -> safeToString(ForgeRegistries.ITEMS.getKey(entry.output().getItem())))
+                .thenComparing(entry -> safeToString(ForgeRegistries.ITEMS.getKey(entry.inputA().getItem())))
+                .thenComparing(entry -> safeToString(ForgeRegistries.ITEMS.getKey(entry.inputB().getItem()))));
+
+        TRADES_BY_PROFESSION.remove(professionId);
+        if (!collectedTrades.isEmpty()) {
+            TRADES_BY_PROFESSION.put(professionId, collectedTrades);
+        }
     }
 
-    public static List<VillagerTradeWrapper> getTradeWrappers(int level) {
-        return TRADES_BY_LEVEL.getOrDefault(level, List.of()).stream()
-                .sorted(Comparator
-                        .comparing((VillagerTradeEntry entry) -> safeToString(ForgeRegistries.VILLAGER_PROFESSIONS.getKey(entry.profession())))
-                        .thenComparing(entry -> safeToString(ForgeRegistries.ITEMS.getKey(entry.output().getItem())))
-                        .thenComparing(entry -> safeToString(ForgeRegistries.ITEMS.getKey(entry.inputA().getItem())))
-                        .thenComparing(entry -> safeToString(ForgeRegistries.ITEMS.getKey(entry.inputB().getItem()))))
+    public static List<ResourceLocation> getProfessionsWithTrades() {
+        return TRADES_BY_PROFESSION.keySet().stream()
+                .sorted(Comparator.comparing(ResourceLocation::toString))
+                .collect(Collectors.toList());
+    }
+
+    public static List<VillagerTradeWrapper> getTradeWrappers(ResourceLocation professionId) {
+        return TRADES_BY_PROFESSION.getOrDefault(professionId, List.of()).stream()
                 .map(VillagerTradeWrapper::new)
                 .toList();
-    }
-
-    private static Map<Integer, List<VillagerTradeEntry>> createTradeMap() {
-        Map<Integer, List<VillagerTradeEntry>> tradesByLevel = new HashMap<>();
-        for (int level = 1; level <= 5; level++) {
-            tradesByLevel.put(level, new ArrayList<>());
-        }
-        return tradesByLevel;
-    }
-
-    private static void removeExistingEntries(VillagerProfession profession) {
-        for (List<VillagerTradeEntry> trades : TRADES_BY_LEVEL.values()) {
-            trades.removeIf(entry -> entry.profession() == profession);
-        }
     }
 
     private static MerchantOffer createOffer(VillagerProfession profession, int level, VillagerTrades.ItemListing listing) {

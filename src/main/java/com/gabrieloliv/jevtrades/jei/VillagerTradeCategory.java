@@ -27,15 +27,17 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
     private static final int SLOT_Y = 27;
     private static final int TEXT_MAX_WIDTH = 122;
 
+    private final ResourceLocation professionId;
     private final RecipeType<VillagerTradeWrapper> recipeType;
     private final Component title;
     private final IDrawable background;
     private final IDrawable icon;
     private final IDrawableStatic slotDrawable;
 
-    public VillagerTradeCategory(IGuiHelper guiHelper, RecipeType<VillagerTradeWrapper> recipeType, String titleKey) {
+    public VillagerTradeCategory(IGuiHelper guiHelper, RecipeType<VillagerTradeWrapper> recipeType, ResourceLocation professionId) {
+        this.professionId = professionId;
         this.recipeType = recipeType;
-        this.title = Component.translatable(titleKey);
+        this.title = Component.translatable("jevtrades.trades.profession", professionId.getPath());
         this.background = guiHelper.createBlankDrawable(140, 58);
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(Items.VILLAGER_SPAWN_EGG));
         this.slotDrawable = guiHelper.getSlotDrawable();
@@ -84,15 +86,14 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
         slotDrawable.draw(guiGraphics, OUTPUT_X, SLOT_Y);
 
         Font font = Minecraft.getInstance().font;
-        ResourceLocation professionId = recipe.getProfessionId();
-        String text = professionId == null ? "unknown" : (Screen.hasShiftDown() ? professionId.toString() : professionId.getPath());
-        float scale = Math.min(1.0F, (float) TEXT_MAX_WIDTH / Math.max(1, font.width(text)));
+        String levelText = Component.translatable("jevtrades.level." + recipe.getLevel()).getString();
+        float scale = Math.min(1.0F, (float) TEXT_MAX_WIDTH / Math.max(1, font.width(levelText)));
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
         poseStack.translate(8.0F, 8.0F, 0.0F);
         poseStack.scale(scale, scale, 1.0F);
-        guiGraphics.drawString(font, text, 0, 0, 0x404040, false);
+        guiGraphics.drawString(font, levelText, 0, 0, 0x404040, false);
         poseStack.popPose();
 
         guiGraphics.drawString(font, ">", 70, 33, 0x606060, false);

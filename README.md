@@ -25,6 +25,12 @@ Each entry shows the villager profession plus input A, optional input B, and out
 - Dynamic trades are shown as a generated sample.
 - Some modded trades may be skipped if they require a real entity context or fail when sampled safely.
 
+## Client-side behavior
+
+This mod is client-side. It shows villager trades known to the local client, including trades from Forge mods installed on the client.
+
+It cannot detect trades that are added only on a remote server by server-side mods, plugins, datapacks, or scripts not present on the client.
+
 ## Testing in dev
 
 Run:

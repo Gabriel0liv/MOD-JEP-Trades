@@ -24,43 +24,28 @@ public class JustEnoughVillagerTradesJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         var guiHelper = registration.getJeiHelpers().getGuiHelper();
-        registration.addRecipeCategories(
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.NOVICE, "jevtrades.trades.novice.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.APPRENTICE, "jevtrades.trades.apprentice.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.JOURNEYMAN, "jevtrades.trades.journeyman.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.EXPERT, "jevtrades.trades.expert.title"),
-                new VillagerTradeCategory(guiHelper, VillagerTradeRecipeTypes.MASTER, "jevtrades.trades.master.title")
-        );
+        for (ResourceLocation professionId : VillagerTradeCollector.getProfessionsWithTrades()) {
+            registration.addRecipeCategories(new VillagerTradeCategory(guiHelper,
+                    VillagerTradeRecipeTypes.getOrCreate(professionId), professionId));
+        }
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         ItemStack emerald = new ItemStack(Items.EMERALD);
         ItemStack villagerEgg = new ItemStack(Items.VILLAGER_SPAWN_EGG);
-        registration.addRecipeCatalyst(emerald,
-                VillagerTradeRecipeTypes.NOVICE,
-                VillagerTradeRecipeTypes.APPRENTICE,
-                VillagerTradeRecipeTypes.JOURNEYMAN,
-                VillagerTradeRecipeTypes.EXPERT,
-                VillagerTradeRecipeTypes.MASTER);
-        registration.addRecipeCatalyst(villagerEgg,
-                VillagerTradeRecipeTypes.NOVICE,
-                VillagerTradeRecipeTypes.APPRENTICE,
-                VillagerTradeRecipeTypes.JOURNEYMAN,
-                VillagerTradeRecipeTypes.EXPERT,
-                VillagerTradeRecipeTypes.MASTER);
+        for (ResourceLocation professionId : VillagerTradeCollector.getProfessionsWithTrades()) {
+            var recipeType = VillagerTradeRecipeTypes.getOrCreate(professionId);
+            registration.addRecipeCatalyst(emerald, recipeType);
+            registration.addRecipeCatalyst(villagerEgg, recipeType);
+        }
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        registerLevel(registration, 1);
-        registerLevel(registration, 2);
-        registerLevel(registration, 3);
-        registerLevel(registration, 4);
-        registerLevel(registration, 5);
-    }
-
-    private static void registerLevel(IRecipeRegistration registration, int level) {
-        registration.addRecipes(VillagerTradeRecipeTypes.byLevel(level), VillagerTradeCollector.getTradeWrappers(level));
+        for (ResourceLocation professionId : VillagerTradeCollector.getProfessionsWithTrades()) {
+            registration.addRecipes(VillagerTradeRecipeTypes.getOrCreate(professionId),
+                    VillagerTradeCollector.getTradeWrappers(professionId));
+        }
     }
 }

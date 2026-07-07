@@ -1,7 +1,8 @@
 {
-  "jevtrades.trades.novice.title": "Villager Trades: Novice",
-  "jevtrades.trades.apprentice.title": "Villager Trades: Apprentice",
-  "jevtrades.trades.journeyman.title": "Villager Trades: Journeyman",
-  "jevtrades.trades.expert.title": "Villager Trades: Expert",
-  "jevtrades.trades.master.title": "Villager Trades: Master"
+  "jevtrades.trades.profession": "Villager Trades: %s",
+  "jevtrades.level.1": "Novice",
+  "jevtrades.level.2": "Apprentice",
+  "jevtrades.level.3": "Journeyman",
+  "jevtrades.level.4": "Expert",
+  "jevtrades.level.5": "Master"
 }

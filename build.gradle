@@ -53,7 +53,14 @@ repositories {
         name = "Jared's maven"
         url = 'https://maven.blamejared.com/'
     }
+
+    flatDir {
+        name = 'RuntimeMods'
+        dirs 'runtime-mods'
+    }
 }
+
+def moreVillagersJar = file('runtime-mods/morevillagers-forge-1.20.1-5.0.0.jar')
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
@@ -61,6 +68,10 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
+
+    if (moreVillagersJar.exists()) {
+        runtimeOnly fg.deobf(group: 'runtime.mods', name: 'morevillagers-forge-1.20.1', version: '5.0.0')
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {

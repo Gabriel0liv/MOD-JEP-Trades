@@ -49,8 +49,20 @@ Run:
 
 JEI is included as a runtime dependency.
 
-To test with extra Forge mods, put their jars in:
+To test with extra Forge mods, you can put their jars in:
 
 ```text
 run/mods/
 ```
+
+This can work for simple mods, but mods with mixins may fail in the ForgeGradle `runClient` userdev environment.
+
+For dev testing with extra mods, prefer:
+
+```text
+runtime-mods/
+```
+
+Mods placed in `runtime-mods/` are loaded through a `flatDir` repository plus named `fg.deobf(...)` runtime dependencies, which is more compatible with the ForgeGradle userdev environment.
+
+Some mods with mixins or accessors can still fail in `runClient` even after deobfuscation. If that happens, test them in a real Forge instance from the launcher instead of the Gradle dev runtime.

@@ -75,6 +75,8 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
 
         ItemStack professionToken = recipe.getProfessionToken();
         if (!professionToken.isEmpty()) {
+            builder.addInvisibleIngredients(RecipeIngredientRole.INPUT)
+                    .addItemStack(professionToken);
             builder.addInvisibleIngredients(RecipeIngredientRole.CATALYST)
                     .addItemStack(professionToken);
         }

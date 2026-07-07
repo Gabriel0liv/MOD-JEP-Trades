@@ -1,7 +1,7 @@
 package com.gabrieloliv.jevtrades.jei;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.gabrieloliv.jevtrades.trade.VillagerTradeWrapper;
+import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
@@ -14,7 +14,6 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -27,17 +26,15 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
     private static final int SLOT_Y = 27;
     private static final int TEXT_MAX_WIDTH = 122;
 
-    private final ResourceLocation professionId;
     private final RecipeType<VillagerTradeWrapper> recipeType;
     private final Component title;
     private final IDrawable background;
     private final IDrawable icon;
     private final IDrawableStatic slotDrawable;
 
-    public VillagerTradeCategory(IGuiHelper guiHelper, RecipeType<VillagerTradeWrapper> recipeType, ResourceLocation professionId) {
-        this.professionId = professionId;
+    public VillagerTradeCategory(IGuiHelper guiHelper, RecipeType<VillagerTradeWrapper> recipeType, String titleKey) {
         this.recipeType = recipeType;
-        this.title = Component.translatable("jevtrades.trades.profession", professionId.getPath());
+        this.title = Component.translatable(titleKey);
         this.background = guiHelper.createBlankDrawable(140, 58);
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(Items.VILLAGER_SPAWN_EGG));
         this.slotDrawable = guiHelper.getSlotDrawable();
@@ -75,6 +72,12 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
 
         builder.addSlot(RecipeIngredientRole.OUTPUT, OUTPUT_X + 1, SLOT_Y + 1)
                 .addItemStack(recipe.getOutput());
+
+        ItemStack professionToken = recipe.getProfessionToken();
+        if (!professionToken.isEmpty()) {
+            builder.addInvisibleIngredients(RecipeIngredientRole.CATALYST)
+                    .addItemStack(professionToken);
+        }
     }
 
     @Override
@@ -86,14 +89,15 @@ public class VillagerTradeCategory implements IRecipeCategory<VillagerTradeWrapp
         slotDrawable.draw(guiGraphics, OUTPUT_X, SLOT_Y);
 
         Font font = Minecraft.getInstance().font;
-        String levelText = Component.translatable("jevtrades.level." + recipe.getLevel()).getString();
-        float scale = Math.min(1.0F, (float) TEXT_MAX_WIDTH / Math.max(1, font.width(levelText)));
+        ResourceLocation professionId = recipe.getProfessionId();
+        String professionText = professionId == null ? "unknown" : ProfessionTokenHelper.toReadableName(professionId);
+        float scale = Math.min(1.0F, (float) TEXT_MAX_WIDTH / Math.max(1, font.width(professionText)));
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
         poseStack.translate(8.0F, 8.0F, 0.0F);
         poseStack.scale(scale, scale, 1.0F);
-        guiGraphics.drawString(font, levelText, 0, 0, 0x404040, false);
+        guiGraphics.drawString(font, professionText, 0, 0, 0x404040, false);
         poseStack.popPose();
 
         guiGraphics.drawString(font, ">", 70, 33, 0x606060, false);

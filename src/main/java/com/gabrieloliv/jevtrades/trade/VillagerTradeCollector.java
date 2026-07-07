@@ -81,6 +81,26 @@ public final class VillagerTradeCollector {
                 .toList();
     }
 
+    public static List<VillagerTradeWrapper> getTradeWrappers(int level) {
+        return TRADES_BY_PROFESSION.values().stream()
+                .flatMap(List::stream)
+                .filter(entry -> entry.level() == level)
+                .map(VillagerTradeWrapper::new)
+                .toList();
+    }
+
+    public static List<VillagerTradeWrapper> getTradeWrappers(ResourceLocation professionId, int level) {
+        return TRADES_BY_PROFESSION.getOrDefault(professionId, List.of()).stream()
+                .filter(entry -> entry.level() == level)
+                .map(VillagerTradeWrapper::new)
+                .toList();
+    }
+
+    public static boolean hasTrades(ResourceLocation professionId, int level) {
+        return TRADES_BY_PROFESSION.getOrDefault(professionId, List.of()).stream()
+                .anyMatch(entry -> entry.level() == level);
+    }
+
     private static MerchantOffer createOffer(VillagerProfession profession, int level, VillagerTrades.ItemListing listing) {
         try {
             Entity trader = null;

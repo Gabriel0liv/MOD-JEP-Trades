@@ -1,5 +1,6 @@
 package com.gabrieloliv.jevtrades.trade;
 
+import com.gabrieloliv.jevtrades.jei.ProfessionTokenHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -7,6 +8,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 public record VillagerTradeWrapper(VillagerTradeEntry entry) {
     public ResourceLocation getProfessionId() {
         return ForgeRegistries.VILLAGER_PROFESSIONS.getKey(entry.profession());
+    }
+
+    public ItemStack getProfessionToken() {
+        ResourceLocation id = getProfessionId();
+        return id == null ? ItemStack.EMPTY : ProfessionTokenHelper.createProfessionToken(id);
     }
 
     public int getLevel() {

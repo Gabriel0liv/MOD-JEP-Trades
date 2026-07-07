@@ -1,13 +1,26 @@
-[![build](https://github.com/Mrbysco/JustEnoughProfessions/actions/workflows/build.yml/badge.svg)](https://github.com/Mrbysco/JustEnoughProfessions/actions/workflows/build.yml) [![](http://cf.way2muchnoise.eu/versions/417645.svg)](https://www.curseforge.com/minecraft/mc-mods/just-enough-professions-jep)
-# Just Enough Professions (JEP) #
+# JustEnoughVillagerTrades
 
-## About ##
-A JEI addon that adds profession workstations
+Forge-only JEI addon for Minecraft 1.20.1.
 
-## License ##
-* Just Enough Professions is licensed under the MIT License
-  - (c) 2021 Mrbysco, ShyNieke
-  - [![License](https://img.shields.io/badge/License-MIT-red.svg?style=flat)](http://opensource.org/licenses/MIT)
+## Requirements
 
-## Downloads ##
-Downloads will be available over at [CurseForge](https://www.curseforge.com/minecraft/mc-mods/just-enough-professions-jep)
+- Minecraft 1.20.1
+- Forge 47.1.3
+- JEI 15.2.0.23 or compatible 1.20.1 release
+
+## What it does
+
+JustEnoughVillagerTrades adds JEI categories that show villager trades by profession level:
+
+- Villager Trades: Novice
+- Villager Trades: Apprentice
+- Villager Trades: Journeyman
+- Villager Trades: Expert
+- Villager Trades: Master
+
+Each entry shows the villager profession plus input A, optional input B, and output.
+
+## Limitations
+
+- Dynamic trades are shown as a generated sample.
+- Some modded trades may be skipped if they require a real entity context or fail when sampled safely.

@@ -80,16 +80,6 @@ public class JustEnoughVillagerTradesJeiPlugin implements IModPlugin {
             registration.addRecipeCatalyst(emerald, type);
             registration.addRecipeCatalyst(villagerEgg, type);
         }
-
-        for (ResourceLocation professionId : VillagerTradeCollector.getProfessionsWithTrades()) {
-            ItemStack token = ProfessionTokenHelper.createProfessionToken(professionId);
-
-            for (int level = 1; level <= 5; level++) {
-                if (VillagerTradeCollector.hasTrades(professionId, level)) {
-                    registration.addRecipeCatalyst(token, VillagerTradeRecipeTypes.byLevel(level));
-                }
-            }
-        }
     }
 
     @Override

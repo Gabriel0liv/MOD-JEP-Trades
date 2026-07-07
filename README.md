@@ -24,3 +24,19 @@ Each entry shows the villager profession plus input A, optional input B, and out
 
 - Dynamic trades are shown as a generated sample.
 - Some modded trades may be skipped if they require a real entity context or fail when sampled safely.
+
+## Testing in dev
+
+Run:
+
+```bat
+.\gradlew.bat runClient
+```
+
+JEI is included as a runtime dependency.
+
+To test with extra Forge mods, put their jars in:
+
+```text
+run/mods/
+```

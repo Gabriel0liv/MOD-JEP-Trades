@@ -31,11 +31,11 @@ minecraft {
         }
 
         client {
-            taskName 'Client'
+            taskName 'runClient'
         }
 
         server {
-            taskName 'Server'
+            taskName 'runServer'
             args '--nogui'
         }
     }
